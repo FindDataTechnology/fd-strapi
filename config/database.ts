@@ -38,7 +38,8 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Database 
         host: env('DATABASE_HOST', 'localhost'),
         port: env.int('DATABASE_PORT', 5432),
         database: env('DATABASE_NAME', 'strapi'),
-        user: env('DATABASE_USERNAME', 'strapi'),
+        // DATABASE_USER 为准（deploy/env.example 用此名），兼容 Strapi 模板惯用的 DATABASE_USERNAME
+        user: env('DATABASE_USER', env('DATABASE_USERNAME', 'strapi')),
         password: env('DATABASE_PASSWORD', 'strapi'),
         ssl: env.bool('DATABASE_SSL', false) && {
           key: env('DATABASE_SSL_KEY', undefined),
@@ -50,7 +51,9 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Database 
         },
         schema: env('DATABASE_SCHEMA', 'public'),
       },
-      pool: { min: env.int('DATABASE_POOL_MIN', 2), max: env.int('DATABASE_POOL_MAX', 10) },
+      // 小连接池适配 512m 内存上限：空闲不保留连接（min 0），并发上限 5；
+      // 默认值偏保守，可用 DATABASE_POOL_MIN / DATABASE_POOL_MAX 覆盖。
+      pool: { min: env.int('DATABASE_POOL_MIN', 0), max: env.int('DATABASE_POOL_MAX', 5) },
     },
     sqlite: {
       client: 'sqlite',

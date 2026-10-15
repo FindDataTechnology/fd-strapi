@@ -1,0 +1,70 @@
+# fd-strapi 节点侧部署栈（cheap-1）。操作序列见同目录 README.md。
+#
+# 前置：deploy/.env（从 env.example 生成，compose 同时用它做变量插值与
+# strapi 容器的 env_file）、deploy/rules/internal-identifiers.txt（规则清单，
+# 由 finddata 事实源同步而来，见 README「规则文件更新」）。
+#
+# 离线校验（不 build 不 pull）：docker compose config
+
+name: fd-strapi
+
+services:
+  strapi:
+    # 镜像经私有构建池出片，tag 写在 .env 的 FD_STRAPI_IMAGE
+    image: ${FD_STRAPI_IMAGE}
+    env_file: .env
+    environment:
+      NODE_ENV: production
+    # 512m 内存上限（cheap-1 小节点：strapi 512m + postgres 192m）
+    mem_limit: 512m
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      # 规则清单只读挂载：容器内路径 = 发布守卫的默认解析路径
+      # （<cwd>/src/rules/internal-identifiers.txt，可由 .env 的 FD_RULES_FILE
+      # 改指别处）。镜像内 src/rules/ 已预建为挂载点（见 Dockerfile）。
+      # 注意：文件级 bind mount 绑定 inode——更新清单用覆盖写（scp /
+      # rsync --in-place），不要 rm+新建或 mv，详见 README。
+      - ./rules/internal-identifiers.txt:/app/src/rules/internal-identifiers.txt:ro
+      # 本地上传目录（upload 插件默认写 public/uploads；镜像内该目录属主 node，
+      # 命名卷初始化继承属主，非 root 进程可写）
+      - uploads:/app/public/uploads
+    # 端口发布形态可配置（写在 .env，compose 插值）：
+    #   默认 127.0.0.1:1337:1337 —— 仅节点本地，适合节点上反代（caddy/nginx）
+    #   终结 TLS 后转发，PUBLIC_URL=https://cms.finddatatech.cloud 指向它；
+    #   要让入站 Docker 网络上的其它容器直连：FD_STRAPI_BIND 改成该网络
+    #   上不暴露公网的接口地址；要换节点对外端口：改 FD_STRAPI_PORT
+    #   （如 13370），容器内 PORT 保持 1337 不动。
+    ports:
+      - "${FD_STRAPI_BIND:-127.0.0.1}:${FD_STRAPI_PORT:-1337}:1337"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:1337/_health >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    mem_limit: 192m
+    restart: unless-stopped
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    # 数据库只在 compose 内部网络暴露给 strapi（DATABASE_HOST=postgres），
+    # 不发布端口；需要临时从节点排查时再注释打开并限制 bind。
+
+volumes:
+  pgdata:
+  uploads:

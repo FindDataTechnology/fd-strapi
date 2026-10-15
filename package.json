@@ -10,6 +10,7 @@
     "dev": "strapi develop",
     "develop": "strapi develop",
     "content:import": "MIGRATE_CONTENT=1 MIGRATE_EXIT=1 strapi develop",
+    "content:import:prebuilt": "MIGRATE_CONTENT=1 MIGRATE_EXIT=1 strapi start",
     "rules:sync": "node scripts/sync-rules.mjs",
     "start": "strapi start",
     "strapi": "strapi",
@@ -22,6 +23,8 @@
     "@strapi/plugin-users-permissions": "5.58.0",
     "@strapi/strapi": "5.58.0",
     "better-sqlite3": "12.8.0",
+    "js-yaml": "^4.3.2",
+    "pg": "^8.23.1",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-router-dom": "^6.30.3",
@@ -33,7 +36,6 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "js-yaml": "^4.3.2",
     "typescript": "^5"
   },
   "engines": {

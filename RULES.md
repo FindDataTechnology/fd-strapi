@@ -70,10 +70,24 @@ fail-closed（清单缺失/为空/坏行，HTTP 400）：
   立即生效（清单在每次发布时重新读取，无需重启）。
 - 源路径可用 `FD_RULES_SRC` 覆盖：
   `FD_RULES_SRC=/path/to/internal-identifiers.txt npm run rules:sync`。
-- `npm run build` 已前置 `rules:sync`（package.json scripts 链），构建产物
-  永远从事实源重新生成副本。
+- `npm run build` 已前置 `rules:sync`（package.json scripts 链），本地构建产物
+  永远从事实源重新生成副本。**构建容器（CI/镜像构建）里没有事实源**——此时
+  同步脚本按「运行时挂载语义」跳过：副本在则保留副本、副本也不在则什么都不
+  生成，均 exit 0 不炸构建；fail-closed 责任保持在运行时守卫（清单读不到即
+  拦全部发布）。
 - 同步前脚本会按运行时同一套语义校验源文件（坏行/空清单直接失败退出），
   不会生成让 gate 失效的副本。
+
+## 生产运行时：清单由节点挂载提供
+
+- 副本不进仓不进镜像（.gitignore / .dockerignore 均排除）；生产由节点把
+  同步好的清单只读挂载到容器 `/app/src/rules/internal-identifiers.txt`
+  （即守卫的默认解析路径），见 `deploy/compose.yml` 与 `deploy/README.md`。
+- 清单路径可用环境变量 `FD_RULES_FILE` 显式指定（`src/rules/internal-identifiers.ts`
+  的 `candidateRulePaths()`）：指定后该路径即唯一权威路径，不存在/为空/损坏
+  一律 fail-closed，不回落候选路径。默认（未设置）行为不变。
+- 挂载的是文件级 bind mount（绑 inode）：更新清单用覆盖写（scp /
+  rsync --in-place），不要 rm+新建或 mv，见 deploy/README.md「规则文件更新」。
 
 ## fail-closed（任务 2.3）
 

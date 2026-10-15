@@ -1,0 +1,42 @@
+# 镜像构建上下文排除清单（配合 Dockerfile 多阶段构建）。
+# 原则：build 阶段需要的东西（src/ config/ scripts/ package*.json tsconfig.json
+# favicon.png public/）进上下文；其余一律排除。
+
+# 依赖与构建产物（build 阶段自己生成）
+node_modules
+dist
+build
+tsconfig.tsbuildinfo
+
+# 本地运行态与数据
+.tmp
+.strapi
+.strapi-updater.json
+.strapi-cloud.json
+database
+*.log
+*.sql
+*.sqlite
+*.sqlite3
+.DS_Store
+
+# 版本库与文档
+.git
+.gitignore
+README.md
+RULES.md
+
+# 凭据：绝不进镜像（生产配置经 compose env_file 注入）
+.env
+.env.*
+
+# 规则清单副本：不进仓不进镜像（生产由节点只读挂载提供，见 RULES.md /
+# Dockerfile 注释）。注意 scripts/ 本身要进上下文——npm run build 前置的
+# rules:sync 需要它（源缺失时走跳过分支）。
+src/rules/internal-identifiers.txt
+
+# 部署清单不需要进镜像
+deploy
+
+# 生成的类型声明（IDE/develop 用）
+types

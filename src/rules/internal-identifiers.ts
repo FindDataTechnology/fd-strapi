@@ -39,8 +39,19 @@ export type FieldHit = {
   snippet: string;
 };
 
-/** 打包副本的候选路径（按序尝试第一个存在的） */
+/**
+ * 规则清单路径解析（运行时）。
+ *
+ * FD_RULES_FILE 环境变量可显式指定清单文件（生产部署用，见 deploy/env.example）：
+ * 指定后该路径即唯一权威路径——不存在/为空/损坏一律 fail-closed，不再回落到
+ * 候选路径（避免「配置说挂 A、实际读了 B」的隐性漂移）。未设置时保持既有
+ * 候选路径行为（<cwd>/src/rules 副本 → 本模块同目录 → dist 镜像位置）。
+ */
 export function candidateRulePaths(): string[] {
+  const override = process.env.FD_RULES_FILE;
+  if (override) {
+    return [path.resolve(override)];
+  }
   const cwd = process.cwd();
   return [
     // 常规：仓库内的 src 副本（develop 与部署目录都成立）

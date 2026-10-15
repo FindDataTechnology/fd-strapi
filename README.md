@@ -2,7 +2,7 @@
 
 寻数官网（fd-official-web）编辑性内容的自托管 Strapi v5（社区版）服务。星研三集合（内参 / 学院 / 研究）今后由这里托管：研究员浏览器投稿、zh/en 双语、主编发布；官网构建期经 REST 拉取写成 markdown（见 finddata 工作区 OpenSpec 变更 `strapi-content-publishing`）。
 
-本仓当前是**服务骨架 + 内容已迁入**（变更任务 1.1–1.6、3.1–3.2 完成）：项目 + 内容模型 + i18n + 编辑器 + 既有 16 篇 md 导入（幂等脚本）+ 角色/只读 token 验证，本地能起、能无头验证。部署 / Docker / 发布钩子不在本波范围。
+本仓当前是**服务骨架 + 内容已迁入 + 生产打包/部署清单**（变更任务 1.1–1.6、3.1–3.2、5.1 仓内部分完成）：项目 + 内容模型 + i18n + 编辑器 + 既有 16 篇 md 导入（幂等脚本）+ 角色/只读 token 验证 + 发布机检（RULES.md）+ Dockerfile 与 `deploy/` compose 栈，本地能起、能无头验证。镜像经私有构建池出片、节点侧操作序列见 `deploy/README.md`。
 
 ## 快速开始（本地开发）
 
@@ -84,7 +84,9 @@ Strapi 5.58 的 i18n 插件**不读** `config/plugins.ts` 里的 v4 式 `default
 `src/migrate-content.ts`（由 `src/index.ts` 的 `MIGRATE_CONTENT=1` bootstrap 分支动态 import）把官网仓
 fd-official-web 的 `src/content/{briefings,academy,research}/{zh,en}/*.md`（目录名映射
 briefings→`api::briefing.briefing`、academy→`api::course.course`、research→`api::research-article.research-article`）
-导入为 zh/en 双语已发布条目。js-yaml（devDependency）只在迁移分支加载，不影响生产启动。
+导入为 zh/en 双语已发布条目。js-yaml 只在迁移分支动态加载；它是生产依赖
+（容器内一次性导入走 `content:import:prebuilt`，见 `deploy/README.md` §4——
+运行时镜像没有 develop 工具链，`strapi start` 模式跑同一段 bootstrap 导入逻辑）。
 
 ```sh
 # 一次性跑完退出（推荐）：
@@ -152,9 +154,13 @@ src/api/briefing/          # content-types/briefing/schema.json + controllers/ro
 src/api/course/            # 同上（官网侧叫 academy）
 src/api/research-article/  # 同上（官网侧叫 research）
 database/migrations/       # 空（内容类型以 schema.json 代码定义）
+Dockerfile                 # 生产镜像（多阶段：build → prune → 非 root runtime；经构建池出片）
+.dockerignore              # 构建上下文排除（规则副本不进镜像，生产由节点挂载提供）
+deploy/compose.yml         # 节点栈：strapi + postgres16 + 规则只读挂载 + uploads/pgdata 卷
+deploy/env.example         # 生产环境变量模板（秘钥 openssl rand -base64 32）
+deploy/README.md           # 节点侧操作序列（起栈/建管理员/token/导入/规则更新/备份）
 ```
 
 ## 下一步（后续任务波次）
 
-- 2.x 发布侧机检钩子（internal-identifiers 规则清单）
-- 4.x 官网拉取脚本收尾、5.x 部署（compose + Postgres）、6.x 切换验收（3.x 导入与 D8 预演已完成，见「内容导入」节）
+- 4.x 官网拉取脚本收尾、5.x 节点侧实机部署（清单已就绪，见 `deploy/README.md`）、6.x 切换验收（3.x 导入与 D8 预演已完成，见「内容导入」节）

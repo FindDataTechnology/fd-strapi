@@ -12,6 +12,11 @@
 //
 // 同步前会按运行时同一套语义校验源文件（注释/空行跳过、`类别 | 模式` 行、
 // 正则可编译、清单非空），坏行直接失败退出，绝不生成会让发布拦截失效的副本。
+//
+// 构建期（CI 容器/镜像构建）语义：镜像构建环境里没有 finddata 规则源，源路径
+// 不存在时不失败——副本在则保留副本，副本也不在则跳过（生产规则清单由节点
+// 只读挂载提供，见 deploy/compose.yml 与 RULES.md）。fail-closed 责任保持在
+// 运行时守卫：守卫读不到清单即拦全部发布，构建期不因规则缺席而失败。
 
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
@@ -59,7 +64,19 @@ function validate(content, file) {
 }
 
 if (!existsSync(SRC)) {
-  fail(`事实源不存在：${SRC}（可用 FD_RULES_SRC 覆盖源路径）`);
+  if (existsSync(DEST)) {
+    console.warn(
+      `rules:sync 跳过：无规则源（${SRC}），保留现有副本 ${DEST} 不变。` +
+        `本机可设 FD_RULES_SRC 指向事实源后重跑同步。`
+    );
+    process.exit(0);
+  }
+  console.warn(
+    `rules:sync 跳过：无规则源与副本（源 ${SRC}、副本 ${DEST}）——` +
+      `按运行时挂载语义跳过（生产由节点挂载提供）。` +
+      `fail-closed 责任在运行时守卫：清单缺失即拦全部发布（见 src/rules/publish-guard.ts）。`
+  );
+  process.exit(0);
 }
 const content = readFileSync(SRC, 'utf8');
 const ruleCount = validate(content, SRC);

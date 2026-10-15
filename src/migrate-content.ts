@@ -16,8 +16,8 @@
 //    在 zh/en 两个文件中必须一致，否则报错拒导（对齐官网拉取侧的同组 slug
 //    一致性预检）。
 //
-// js-yaml 是 devDependency：本模块经 src/index.ts 的 MIGRATE_CONTENT 分支
-// 动态 import，生产启动不加载它。
+// js-yaml 是生产依赖（容器内一次性导入 content:import:prebuilt 也要用）：
+// 本模块仍经 src/index.ts 的 MIGRATE_CONTENT 分支动态 import，正常启动不加载。
 
 import fs from 'node:fs';
 import path from 'node:path';
