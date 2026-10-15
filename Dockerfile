@@ -56,8 +56,10 @@ COPY --chown=node:node tsconfig.json ./tsconfig.json
 # 挂载点与可写目录属主：
 #  - src/rules/：规则清单只读挂载点（上面「关键取舍」第 2 条）
 #  - public/uploads/：本地上传目录（compose 挂 uploads 卷）
-RUN mkdir -p src/rules public/uploads \
- && chown -R node:node src public
+#  - .tmp/：sqlite 方言启动时要 mkdir /app/.tmp（首版冒烟实测 EACCES 抓出）；
+#    生产走 postgres 不用它，预建属主让 sqlite 兜底路径（冒烟/应急）可用
+RUN mkdir -p src/rules public/uploads .tmp \
+ && chown -R node:node src public .tmp
 
 USER node
 EXPOSE 1337
