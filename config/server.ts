@@ -10,6 +10,10 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Server =>
     host: env('HOST', '0.0.0.0'),
     port: env.int('PORT', 1337),
     ...(publicUrl ? { url: publicUrl } : {}),
+    // TLS 由雷池终结（回源 http），secure cookie 需要 proxy 模式读取
+    // X-Forwarded-Proto 才能发出去（否则 koa-session 报
+    // "Cannot send secure cookie over unencrypted connection"）。
+    proxy: true,
     // admin 目录保持默认（/admin，config/admin.ts 无 path 配置）
     app: {
       keys: env.array('APP_KEYS')!,
