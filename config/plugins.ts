@@ -64,7 +64,8 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Plugin =>
       OIDC_AUTHORIZATION_ENDPOINT: 'https://auth.finddatatech.cloud/oidc/auth',
       OIDC_TOKEN_ENDPOINT: 'https://auth.finddatatech.cloud/oidc/token',
       OIDC_USER_INFO_ENDPOINT: 'https://auth.finddatatech.cloud/oidc/me',
-      OIDC_USER_INFO_ENDPOINT_WITH_AUTH_HEADER: false,
+      // Logto 拒绝 query 参数传 access_token（invalid_request），必须 Bearer 头
+      OIDC_USER_INFO_ENDPOINT_WITH_AUTH_HEADER: true,
       OIDC_GRANT_TYPE: 'authorization_code',
       USE_WHITELIST: true,
     },
