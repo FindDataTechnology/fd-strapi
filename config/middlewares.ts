@@ -16,11 +16,11 @@ const config: Core.Config.Middlewares = [
       formLimit: '20mb',
     },
   },
-  'strapi::session',
   // session cookie 的 secure 标志默认按 NODE_ENV==='production' 硬开；本部署
   // TLS 由雷池终结、回源 http（X-Forwarded-Proto 不被 koa-session 的 secure
   // 判定采信），secure cookie 发不出去 = 管理后台会话全断。显式关掉：
   // 浏览器↔雷池仍是 HTTPS，Cookie 传输段不降级（传输层安全由反代保证）。
+  // 注意：只能出现一次——同时保留字符串版会注册两遍，先生效的是默认 secure:true。
   {
     name: 'strapi::session',
     config: { secure: false },
