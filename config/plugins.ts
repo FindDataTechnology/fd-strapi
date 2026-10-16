@@ -48,6 +48,27 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Plugin =>
       },
     },
   },
+  // SSO（strapi-plugin-sso）：管理后台经寻数 Logto 登录（OIDC 授权码流）。
+  // 应用 = Logto admin 租户 cms-console（03pozpxtfqj1k5v0296j1），回调
+  // /strapi-plugin-sso/oidc/callback 已在 Logto redirectUris。
+  // USE_WHITELIST=true：仅白名单邮箱可 SSO 建号/登录——账号生命周期收口在
+  // Logto+白名单双闸。凭据经 .env 注入（SSO_OAUTH_*，见 deploy/env.example）。
+  'strapi-plugin-sso': {
+    enabled: true,
+    config: {
+      REMEMBER_ME: false,
+      OIDC_CLIENT_ID: env('SSO_OIDC_CLIENT_ID'),
+      OIDC_CLIENT_SECRET: env('SSO_OIDC_CLIENT_SECRET'),
+      OIDC_REDIRECT_URI: env('SSO_OIDC_REDIRECT_URI', 'https://cms.finddatatech.cloud/strapi-plugin-sso/oidc/callback'),
+      OIDC_SCOPES: 'openid profile email',
+      OIDC_AUTHORIZATION_ENDPOINT: 'https://auth.finddatatech.cloud/oidc/auth',
+      OIDC_TOKEN_ENDPOINT: 'https://auth.finddatatech.cloud/oidc/token',
+      OIDC_USER_INFO_ENDPOINT: 'https://auth.finddatatech.cloud/oidc/me',
+      OIDC_USER_INFO_ENDPOINT_WITH_AUTH_HEADER: false,
+      OIDC_GRANT_TYPE: 'authorization_code',
+      USE_WHITELIST: true,
+    },
+  },
   upload: {
     config: {
       security: {
