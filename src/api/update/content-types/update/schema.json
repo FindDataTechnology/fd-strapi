@@ -1,0 +1,65 @@
+{
+  "kind": "collectionType",
+  "collectionName": "updates",
+  "info": {
+    "singularName": "update",
+    "pluralName": "updates",
+    "displayName": "项目动态 Update",
+    "description": "官网「项目动态」条目（official-web-surface-refresh）。单条目双语字段（roadmap 先例），不走 locale 配对——一条动态是一个日期事实。字段对齐 fd-official-web src/content.config.ts 的 updates zod schema。line 用于按产品线过滤，kind 用于标签。"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": false
+    }
+  },
+  "attributes": {
+    "slug": {
+      "type": "uid",
+      "required": true,
+      "minLength": 1
+    },
+    "date": {
+      "type": "date",
+      "required": true
+    },
+    "line": {
+      "type": "enumeration",
+      "enum": ["base", "lex", "wire", "facet", "constellation", "xingyan"],
+      "required": true
+    },
+    "kind": {
+      "type": "enumeration",
+      "enum": ["release", "feature", "fix", "note"],
+      "required": true
+    },
+    "title_zh": {
+      "type": "string",
+      "required": true
+    },
+    "title_en": {
+      "type": "string",
+      "required": true
+    },
+    "summary_zh": {
+      "type": "text",
+      "required": true
+    },
+    "summary_en": {
+      "type": "text",
+      "required": true
+    },
+    "version": {
+      "type": "string",
+      "required": false,
+      "default": ""
+    },
+    "url": {
+      "type": "string",
+      "required": false,
+      "default": ""
+    }
+  }
+}
