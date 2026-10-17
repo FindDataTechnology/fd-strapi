@@ -53,6 +53,36 @@
         }
       }
     },
+    "level": {
+      "type": "enumeration",
+      "enum": ["use", "build"],
+      "required": false,
+      "default": null,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "track": {
+      "type": "string",
+      "required": false,
+      "default": "",
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
+    "updated": {
+      "type": "date",
+      "required": false,
+      "pluginOptions": {
+        "i18n": {
+          "localized": false
+        }
+      }
+    },
     "pack_url": {
       "type": "string",
       "default": "",
