@@ -55,7 +55,10 @@
     },
     "level": {
       "type": "enumeration",
-      "enum": ["use", "build"],
+      "enum": [
+        "use",
+        "build"
+      ],
       "required": false,
       "default": null,
       "pluginOptions": {
@@ -103,6 +106,15 @@
     "body": {
       "type": "richtext",
       "required": true,
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "claims": {
+      "type": "json",
+      "default": [],
       "pluginOptions": {
         "i18n": {
           "localized": true

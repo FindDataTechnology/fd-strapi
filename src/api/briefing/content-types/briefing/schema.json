@@ -71,6 +71,15 @@
         }
       }
     },
+    "claims": {
+      "type": "json",
+      "default": [],
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
     "body": {
       "type": "richtext",
       "required": true,

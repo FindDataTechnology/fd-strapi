@@ -55,7 +55,11 @@
     },
     "kind": {
       "type": "enumeration",
-      "enum": ["paper", "casestudy", "note"],
+      "enum": [
+        "paper",
+        "casestudy",
+        "note"
+      ],
       "required": true,
       "pluginOptions": {
         "i18n": {
@@ -73,6 +77,15 @@
       }
     },
     "sources": {
+      "type": "json",
+      "default": [],
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "claims": {
       "type": "json",
       "default": [],
       "pluginOptions": {

@@ -26,6 +26,7 @@
 
 import { errors } from '@strapi/utils';
 import { loadPackedRules, scanEntry, type FieldHit, type Rule } from './internal-identifiers';
+import { checkClaims, checkClaimsAcrossLocales, formatClaimIssues } from './claim-structure';
 
 type Strapi = import('@strapi/strapi').Core.Strapi;
 
@@ -118,6 +119,24 @@ async function guardPublishAction(strapi: Strapi, uid: string, params: Record<st
   for (const row of rows) {
     throwIfHits(scanEntry(row, rules), pickSlug(rows, undefined), uid, rowLocale(row));
   }
+  guardClaims(rows, pickSlug(rows, undefined));
+}
+
+/**
+ * claim 骨架闸（与标识闸同一发布位、不同职责；见 claim-structure.ts 头注释）。
+ * 逐行查四要素/枚举/证据闭环，再跨 locale 查 ID 集合与类型一致。
+ */
+function guardClaims(rows: Array<Record<string, unknown>>, slug: string): void {
+  for (const row of rows) {
+    const issues = checkClaims(row.claims, row.sources);
+    if (issues.length) {
+      throw new errors.ApplicationError(formatClaimIssues(issues, slug, rowLocale(row)));
+    }
+  }
+  const crossLocale = checkClaimsAcrossLocales(rows);
+  if (crossLocale.length) {
+    throw new errors.ApplicationError(formatClaimIssues(crossLocale, slug, '多语言'));
+  }
 }
 
 /** action === 'create'/'update' 且 status==='published'（admin「新建即发布」旁路）：检查提交的 data；update 还要检查将被合并发布的现有草稿行 */
@@ -138,6 +157,7 @@ async function guardUpsertAsPublished(
     for (const row of rows) {
       throwIfHits(scanEntry(row, rules), pickSlug(rows, params.data), uid, rowLocale(row));
     }
+    guardClaims(rows, pickSlug(rows, params.data));
   }
   if (params.data && typeof params.data === 'object') {
     const locale = (params as { locale?: unknown }).locale;
@@ -148,6 +168,12 @@ async function guardUpsertAsPublished(
       uid,
       localeLabel
     );
+    // 旁路：新建/更新即发布时，提交的 data 也要过 claim 闸（否则 admin 表单直录可绕过）。
+    const data = params.data as Record<string, unknown>;
+    const issues = checkClaims(data.claims, data.sources);
+    if (issues.length) {
+      throw new errors.ApplicationError(formatClaimIssues(issues, pickSlug([], params.data), localeLabel));
+    }
   }
 }
 
