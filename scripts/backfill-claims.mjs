@@ -18,7 +18,7 @@
 //       XINGYAN_CANON（默认 ../docs/xingyan）、
 //       XINGYAN_ADMIN_EMAIL（默认 xingyan-admin@finddatatech.cloud）
 
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 const BASE = (process.env.XINGYAN_CMS ?? 'https://cms.finddatatech.cloud').replace(/\/+$/, '');
@@ -156,9 +156,16 @@ async function main() {
   if (!PW) throw new Error('需要 XINGYAN_ADMIN_PW 环境变量');
   console.log(`[backfill] CMS=${BASE}  canon=${CANON}  模式=${DRY ? 'DRY-RUN' : 'APPLY'}`);
 
-  const login = await api('/admin/login', { method: 'POST', body: { email: EMAIL, password: PW } });
-  const token = login?.data?.token;
-  if (!token) throw new Error('登录失败：未拿到 token');
+  // 登录有速率限制（实测连发会 429）：缓存 token 到 /tmp，重复运行时直接复用。
+  const cacheFile = '/tmp/.fd_strapi_tok';
+  let token = '';
+  if (existsSync(cacheFile)) token = readFileSync(cacheFile, 'utf8').trim();
+  if (!token) {
+    const login = await api('/admin/login', { method: 'POST', body: { email: EMAIL, password: PW } });
+    token = login?.data?.token ?? '';
+    if (!token) throw new Error('登录失败：未拿到 token');
+    writeFileSync(cacheFile, token, { mode: 0o600 });
+  }
 
   for (const zone of ZONES) {
     console.log(`\n── ${zone.dir} ──`);
