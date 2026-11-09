@@ -13,6 +13,7 @@ Strapi 的 entry.publish webhook 打到这里（容器内经 100.64.0.11:8125，
 import http.server
 import ipaddress
 import logging
+import secrets
 import subprocess
 
 BIND = ("100.64.0.11", 8125)
@@ -48,7 +49,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         token = read_token()
-        if not token or self.headers.get("X-Deploy-Token", "") != token:
+        # 常量时间比较：`!=` 是逐字节短路，耗时随「匹配了多少前缀」变化，
+        # 攻击者可据此逐字节把 token 猜出来（经典时序侧信道）。
+        # `not token` 那半保持 fail-closed：没配 token 就一律拒。
+        supplied = self.headers.get("X-Deploy-Token", "")
+        if not token or not secrets.compare_digest(supplied, token):
             log.warning("denied: bad or missing token from %s", self.client_address[0])
             self._deny(401, "unauthorized\n")
             return
