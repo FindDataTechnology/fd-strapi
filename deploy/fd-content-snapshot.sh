@@ -30,13 +30,22 @@ fi
 if [ -n "${GITHUB_TOKEN:-}" ]; then
   git add src/content/briefings src/content/academy src/content/research 2>/dev/null || exit 0
   if ! git diff --cached --quiet; then
+    # 快照提交的父就是刚构建的那版源码，回退只能回到它——不能回 origin/main。
+    PREV=$(git rev-parse HEAD)
     git -c user.name=fd-content-bot -c user.email=bot@finddatatech.cloud \
       commit -qm "[content-snapshot] $(date -u +%FT%TZ) Strapi published-content archive [ci skip]"
     if git push -q "https://x-access-token:${GITHUB_TOKEN}@github.com/FindDataTechnology/fd-official-web.git" HEAD:main; then
       echo "snapshot: pushed $(git rev-parse --short=7 HEAD)"
     else
-      echo "snapshot: push failed, dropping local commit"
-      git reset -q --hard origin/main
+      # 2026-11-13 实修：原为 `git reset --hard origin/main`，而构建机（cheap1）的
+      # origin/main 是 2026-10-17 的陈旧 GitHub 镜像——`/opt/fd/fd-web-deploy.sh`
+      # 自己注释着「github fallback disabled — 落后 gitee/main」，这正是 10-17 事故的
+      # 同一条线。推送用 scs001 凭据必然 403，于是每次部署都把工作树丢回那条旧线；
+      # 两轮构建重叠时，后一轮在容器里读到的就是旧的 package.json——实历报
+      # `Missing script: showcase:fetch`（该脚本 2026-10-17 之后才有）。
+      # 回退目标应是本次构建的源提交，与任何远端无关。
+      echo "snapshot: push failed, dropping local commit (back to $PREV)"
+      git reset -q --hard "$PREV"
     fi
   fi
 fi
