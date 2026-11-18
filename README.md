@@ -1,5 +1,7 @@
 # fd-strapi
 
+> **Part of the [Base line (寻数·壹座)](https://www.finddatatech.cloud/products/base) of [FindData](https://www.finddatatech.cloud)** — the content service behind the public site: a Strapi deployment with an internal-identifier gate on publish.
+
 寻数官网（fd-official-web）编辑性内容的自托管 Strapi v5（社区版）服务。星研三集合（内参 / 学院 / 研究）今后由这里托管：研究员浏览器投稿、zh/en 双语、主编发布；官网构建期经 REST 拉取写成 markdown（见 finddata 工作区 OpenSpec 变更 `strapi-content-publishing`）。
 
 本仓当前是**服务骨架 + 内容已迁入 + 生产打包/部署清单**（变更任务 1.1–1.6、3.1–3.2、5.1 仓内部分完成）：项目 + 内容模型 + i18n + 编辑器 + 既有 16 篇 md 导入（幂等脚本）+ 角色/只读 token 验证 + 发布机检（RULES.md）+ Dockerfile 与 `deploy/` compose 栈，本地能起、能无头验证。镜像经私有构建池出片、节点侧操作序列见 `deploy/README.md`。

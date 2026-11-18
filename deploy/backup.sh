@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# fd-strapi 每夜备份（cheap-1，/etc/cron.d/fd-strapi-backup 调起）。
+# fd-strapi 每夜备份（the node，/etc/cron.d/fd-strapi-backup 调起）。
 # pg_dump 全库 + uploads 卷打包，各留 14 份滚动；栈未起则跳过（exit 0）。
 # 注意两条实测教训（2026-10-16 首演练抓出）：
 #   - docker compose ps -q 在栈未起时也 exit 0（空输出）——守卫必须测输出非空

@@ -1,4 +1,4 @@
-# fd-strapi 节点侧部署（cheap-1）
+# fd-strapi 节点侧部署
 
 栈构成：strapi（经构建池出片的镜像，512m）+ postgres:16-alpine（192m）+
 规则清单只读挂载 + uploads 命名卷。镜像构建不在节点上（本仓 Dockerfile 经

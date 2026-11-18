@@ -1,4 +1,4 @@
-# fd-strapi 节点侧部署栈（cheap-1）。操作序列见同目录 README.md。
+# fd-strapi 节点侧部署栈。操作序列见同目录 README.md。
 #
 # 前置：deploy/.env（从 env.example 生成，compose 同时用它做变量插值与
 # strapi 容器的 env_file）、deploy/rules/internal-identifiers.txt（规则清单，
@@ -15,7 +15,7 @@ services:
     env_file: .env
     environment:
       NODE_ENV: production
-    # 512m 内存上限（cheap-1 小节点：strapi 512m + postgres 192m）
+    # 512m 内存上限（小节点：strapi 512m + postgres 192m）
     mem_limit: 512m
     restart: unless-stopped
     depends_on:

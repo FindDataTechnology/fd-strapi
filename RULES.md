@@ -44,7 +44,7 @@ source_material/slug 等）+ 字符串数组元素（tags/sources，报错定位
 命中（HTTP 400，ApplicationError）：
 
 ```
-发布被拦截：内容含内部标识，机检未通过。命中 2 处：【内部代号】api::briefing.briefing「my-briefing-slug」(zh) 字段 body 命中 drillcust："…部署在 drillcust 节点…"；【节点与主机】… 字段 tags[1] 命中 cheap-3："cheap-3"。请改写以上字段后重新发布（规则清单：src/rules/internal-identifiers.txt，同步方式见 RULES.md）。
+发布被拦截：内容含内部标识，机检未通过。命中 2 处：【内部代号】api::briefing.briefing「my-briefing-slug」(zh) 字段 body 命中 drillcust："…部署在 drillcust 节点…"；【节点与主机】… 字段 tags[1] 命中 <节点名>："<节点名>"。请改写以上字段后重新发布（规则清单：src/rules/internal-identifiers.txt，同步方式见 RULES.md）。
 ```
 
 含**命中分类名、条目 slug、locale、字段名（数组带下标）、命中模式与上下文
@@ -118,7 +118,7 @@ TOKEN=$(curl -s http://localhost:1340/admin/login -H 'content-type: application/
 # 建草稿（以 briefing 为例；zh locale）
 curl -s http://localhost:1340/content-manager/collection-types/api::briefing.briefing?locale=zh \
   -H "Authorization: Bearer $TOKEN" -H 'content-type: application/json' \
-  -d '{"title":"…","summary":"…","slug":"test-dirty","date":"2026-10-16","tags":["cheap-3"],"sources":[],"body":"…"}'
+  -d '{"title":"…","summary":"…","slug":"test-dirty","date":"2026-10-16","tags":["<节点名>"],"sources":[],"body":"…"}'
 # → 记下 data.documentId
 
 # 发布（主编点发布的同一条 API）

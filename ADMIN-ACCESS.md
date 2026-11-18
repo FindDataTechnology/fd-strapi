@@ -16,7 +16,7 @@
 
 应急凭据在节点 `/opt/fd-strapi/.admin-credentials`（600）。
 
-## 日常操作配方（节点 cheap-1，库在 compose 的 postgres）
+## 日常操作配方（节点上，库在 compose 的 postgres）
 
 ```bash
 cd /opt/fd-strapi

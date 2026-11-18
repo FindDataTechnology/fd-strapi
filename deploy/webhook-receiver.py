@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
-"""fd-strapi publish webhook receiver (cheap-1 host service).
+"""fd-strapi publish webhook receiver (the node host service).
 
-Strapi 的 entry.publish webhook 打到这里（容器内经 100.64.0.11:8125，tailnet
+Strapi 的 entry.publish webhook 打到这里（容器内经 <webhook-host>:8125，tailnet
 段不公网可达），校验 X-Deploy-Token 后串行调起官网构建部署脚本
 /opt/fd/fd-web-deploy.sh（flock 防并发；立即 202，构建日志在
 /var/log/fd-web-deploy.log）。
 
-- 只 bind 100.64.0.11（本机 tailnet IP）：容器可达、公网不可达
+- 只 bind <webhook-host>（本机 tailnet IP）：容器可达、公网不可达
 - token 在 /opt/fd-strapi/.webhook-token（0600）
 - 无/错 token → 401；GET → 405；flock 占用 → 202 already-running
 """
 import http.server
 import ipaddress
 import logging
+import os
 import secrets
 import subprocess
 
-BIND = ("100.64.0.11", 8125)
+BIND = (os.environ.get("WEBHOOK_BIND_HOST", "127.0.0.1"),
+        int(os.environ.get("WEBHOOK_BIND_PORT", "8125")))
 TOKEN_FILE = "/opt/fd-strapi/.webhook-token"
 DEPLOY_LOCK = "/var/lock/fd-web-deploy.lock"
 DEPLOY_CMD = ["/opt/fd/fd-web-deploy.sh"]
